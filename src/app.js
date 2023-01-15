@@ -24,7 +24,7 @@ mongoClient.connect()
     app.post("/participants", (req, res) => {
         const { name } = req.body
 
-        db.collection("test").insertOne({name : 'example'})
+        db.collection("test").insertOne(name)
             
         })
             
