@@ -136,8 +136,35 @@ app.post("/status", async (req, res) => {
         res.status(500).send("Deu ruim")
     }
 })
-            
-            
+
+
+setInterval(async () => {
+
+    const onlineUsers = await db.collection("participants").find().toArray()
+    
+    const timestamp = Date.now()
+    
+    const userRemoved = await onlineUsers.filter( (n) =>{
+          return  timestamp >= n.lastStatus + 10000
+        }) 
+        try{
+            await userRemoved.map(async (remove)=>{
+                await db.collection("messages").insertOne({
+                    "from": remove.name,
+                    "to": "Todos", 
+                    "text": "sai da sala...", 
+                    "type": "status", 
+                    "time": "HH:MM:SS"
+                })
+                await db.collection("participants").deleteOne(remove)
+                console.log("users removed" + " " + remove.name)
+            })
+        }catch(err){
+            console.log(err)
+        }
+    }, 1500);
+        
+        
             const PORT = 5000;
             app.listen(PORT, () => console.log('server online'))
             
