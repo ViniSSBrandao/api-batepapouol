@@ -97,7 +97,7 @@ app.post("/messages", async (req, res) => {
         
         if(!to || !text || !type){return res.sendStatus(422)}
     
-        await db.collection("messages").insertOne({"to": to, "text" : text, "type": type, time: msgTime })
+        await db.collection("messages").insertOne({"from": user, "to": to, "text" : text, "type": type, time: msgTime })
         return res.sendStatus(201)
         }
         catch(err){
