@@ -120,10 +120,12 @@ app.get("/messages", async (req, res) => {
         console.log("limit")
         return res.sendStatus(422)
         }
-        if( isNan(limit) || !limit){
-        console.log("limit")
-        return res.sendStatus(422)
-        }
+        // if( isNan(limit) || !limit){
+        // console.log("limit")
+        // return res.sendStatus(422)
+        // }
+
+
         const messages = await db
                 .collection("messages")
                 .find({ $or: [{ from: user }, { to: { $in: ["Todos", user] } }] })
