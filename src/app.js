@@ -121,14 +121,15 @@ app.post("/status", async (req, res) => {
     try{
     const name  = req.headers.user;
 
-    const userIsLogged = await db.collection("participants").findOne({ name })
-    console.log(name)
-    
+    console.log("name: "+ name)
     if(!name){return res.sendStatus(422)}
+    
+    const userIsLogged = await db.collection("participants").findOne({ name })
+    console.log(userIsLogged)
+    
+    if(!userIsLogged){ return res.sendStatus(404)}
 
-    if(userIsLogged){ console.log(userIsLogged);return res.sendStatus(409) }
-
-    await db.collection("participants").insertOne({"name": name, "lastStatus": Date.now()})
+    await db.collection("participants").updateOne({ "name": name } , {$set: {"lastStatus": Date.now()}})
     return res.sendStatus(201)
     }
     catch(err){
@@ -162,7 +163,7 @@ setInterval(async () => {
         }catch(err){
             console.log(err)
         }
-    }, 1500);
+    }, 15000);
         
         
             const PORT = 5000;
