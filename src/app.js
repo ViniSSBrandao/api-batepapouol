@@ -11,6 +11,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 const mongoClient = new MongoClient(process.env.DATABASE_URL)
+console.log(process.env.DATABASE_URL)
 let db;
 
 try{
@@ -29,6 +30,7 @@ app.post("/participants", async (req, res) => {
     const userIsLogged = await db.collection("participants").findOne({ name })
     const timestamp = Date.now()
     const logTime = dayjs(timestamp).format("HH:mm:ss");
+    console.log(name)
     
     const participantSchema = joi.object({
         name: joi.string().required(),
@@ -43,7 +45,7 @@ app.post("/participants", async (req, res) => {
 
     if(!name){return res.sendStatus(422)}
 
-    if(userIsLogged){ return res.sendStatus(409) }
+    if(userIsLogged){ console.log(userIsLogged);return res.sendStatus(409) }
 
     await db.collection("participants").insertOne({"name": name, "lastStatus": Date.now()})
 
@@ -53,7 +55,7 @@ app.post("/participants", async (req, res) => {
     }
     catch(err){
         console.log(err)
-        res.status(500).send("Data Access Error")
+        res.status(500).send("Deu ruim")
     }
 })
 
@@ -62,7 +64,7 @@ app.post("/participants", async (req, res) => {
 app.get("/participants", (req, res) => {
     db.collection("participants").find().toArray().then(participants => {
         return res.send(participants)
-    }).catch(() => console.log('Data Access Error'));
+    }).catch(() => console.log('Data server error!'));
 });
 
 app.post("/messages", async (req, res) => {
@@ -100,7 +102,7 @@ app.post("/messages", async (req, res) => {
         }
         catch(err){
             console.log(err)
-            res.status(500).send("Data Access Error")
+            res.status(500).send("Deu ruim")
         }
 })
 
@@ -108,15 +110,20 @@ app.get("/messages", async (req, res) => {
 
     const { limit } = req.query;
     const user = req.headers.user;
+    console.log("user: " + user)
 
     const userIsLogged = await db.collection("participants").findOne({ name: user })
-    if(!userIsLogged){ return res.sendStatus(404)}
-    const limitNumber = parseInt(limit)
-    console.log(limitNumber)
+    if(!userIsLogged){ console.log(userIsLogged); return res.sendStatus(404)}
+
     try {
-        if(limitNumber<1 || !user || !limitNumber ){
+        if(limit<=0 || !user ){
+        console.log("limit")
         return res.sendStatus(422)
         }
+        // if( isNan(limit) || !limit){
+        // console.log("limit")
+        // return res.sendStatus(422)
+        // }
 
 
         const messages = await db
@@ -132,7 +139,7 @@ app.get("/messages", async (req, res) => {
 
         await db.collection("messages").find({ $or: [{ from: user }, { to: { $in: ["Todos", user] } }] }).toArray().then(messages => {
             return res.send(messages)
-        })}catch(err){() => {return res.sendStatus(404)} }
+        })}catch(err){() => console.log("catch");return res.sendStatus(404)}
 });
 
 app.post("/status", async (req, res) => {
@@ -140,12 +147,12 @@ app.post("/status", async (req, res) => {
     try{
     const name  = req.headers.user;
 
-    
+    console.log("name: "+ name)
     if(!name){return res.sendStatus(404)}
     
     const userIsLogged = await db.collection("participants").findOne({ name })
     if(!userIsLogged){ return res.sendStatus(404)}
-    
+    console.log(userIsLogged)
     
 
     await db.collection("participants").updateOne({ "name": name } , {$set: {"lastStatus": Date.now()}})
@@ -153,7 +160,7 @@ app.post("/status", async (req, res) => {
     }
     catch(err){
         console.log(err)
-        res.status(500).send("Data Access Error")
+        res.status(500).send("Deu ruim")
     }
 })
 
@@ -177,9 +184,10 @@ setInterval(async () => {
                     "time": timestamp
                 })
                 await db.collection("participants").deleteOne(remove)
+                console.log("users removed" + " " + remove.name)
             })
         }catch(err){
-            console.log("Data Access Error")
+            console.log(err)
         }
     }, 15000);
         
