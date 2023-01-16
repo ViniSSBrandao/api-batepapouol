@@ -110,10 +110,30 @@ app.get("/messages", async (req, res) => {
 
     const { limit } = req.query;
     const user = req.headers.user;
+    console.log("user: " + user)
 
-    db.collection("messages").find().toArray().then(messages => {
+    const userIsLogged = await db.collection("participants").findOne({ name: user })
+    if(!userIsLogged){ console.log(userIsLogged); return res.sendStatus(404)}
+
+    try {if(limit<=0 || !user){
+        console.log("limit")
+        return res.sendStatus(422)
+    }
+
+    const messages = await db
+            .collection("messages")
+            .find({ $or: [{ from: user }, { to: { $in: ["Todos", user] } }] })
+            .toArray();
+
+    const lastMessages = [...messages].reverse().slice(0, parseInt(limit)).reverse();
+
+    if (limit) {
+        return res.send(lastMessages);
+    }
+
+    await db.collection("messages").find({ $or: [{ from: user }, { to: { $in: ["Todos", user] } }] }).toArray().then(messages => {
         return res.send(messages)
-    }).catch(() => console.log('Data server error!'));
+    })}catch(err){() => console.log("catch");return res.sendStatus(404)}
 });
 
 app.post("/status", async (req, res) => {
@@ -122,15 +142,15 @@ app.post("/status", async (req, res) => {
     const name  = req.headers.user;
 
     console.log("name: "+ name)
-    if(!name){return res.sendStatus(422)}
+    if(!name){return res.sendStatus(404)}
     
     const userIsLogged = await db.collection("participants").findOne({ name })
+    if(!userIsLogged){ return res.sendStatus(404)}
     console.log(userIsLogged)
     
-    if(!userIsLogged){ return res.sendStatus(404)}
 
     await db.collection("participants").updateOne({ "name": name } , {$set: {"lastStatus": Date.now()}})
-    return res.sendStatus(201)
+    return res.sendStatus(200)
     }
     catch(err){
         console.log(err)
@@ -155,7 +175,7 @@ setInterval(async () => {
                     "to": "Todos", 
                     "text": "sai da sala...", 
                     "type": "status", 
-                    "time": "HH:MM:SS"
+                    "time": timestamp
                 })
                 await db.collection("participants").deleteOne(remove)
                 console.log("users removed" + " " + remove.name)
