@@ -56,11 +56,12 @@ app.post("/messages", async (req, res) => {
     try{
         
         const { to , text, type } = req.body  
-
+        const timestamp = Date.now()
+        const msgTime = dayjs(timestamp).format("HH:mm:ss");    
         
         if(!to || !text || !type){return res.sendStatus(422)}
     
-        await db.collection("test").insertOne({"to": to, "text" : text, "type": type })
+        await db.collection("messages").insertOne({"to": to, "text" : text, "type": type, time: msgTime })
         return res.sendStatus(201)
         }
         catch(err){
@@ -70,8 +71,8 @@ app.post("/messages", async (req, res) => {
 })
 
 app.get("/messages", (req, res) => {
-    db.collection("test").find().toArray().then(participants => {
-        return res.send(participants)
+    db.collection("messages").find().toArray().then(messages => {
+        return res.send(messages)
     }).catch(() => console.log('Data server error!'));
 });
 
