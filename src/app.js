@@ -90,6 +90,10 @@ app.post("/messages", async (req, res) => {
             const err = validation.error.details.map((detail) => detail.message);
             return res.status(422).send(err);
         }
+
+        const isUserLogged = await db.collection("participants").findOne({ name: user });
+
+        if (!isUserLogged) return res.sendStatus(422);
         
         if(!to || !text || !type){return res.sendStatus(422)}
     
@@ -102,7 +106,7 @@ app.post("/messages", async (req, res) => {
         }
 })
 
-app.get("/messages", (req, res) => {
+app.get("/messages:id", (req, res) => {
 
     // const { limit } = req.query;
     // const user = req.headers.user;
