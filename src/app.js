@@ -17,15 +17,20 @@ mongoClient.connect()
     .catch(()=> {console.log("Monogodb Offline")})
 
 app.post("/participants", async (req, res) => {
+    
+    try{
     const { name } = req.body 
 
     const userIsLogged = await db.collection("test").findOne({ name })
     
-    
-    if(userIsLogged){ return res.status(400).send("ja tem, bobao") }
+    if(userIsLogged){ return res.sendStatus(409) }
 
-    await db.collection("test").insertOne({"name": name, "lastStatus": Date.now()}).then(() => {return res.sendStatus(201)}).catch(() => {return res.sendStatus(422)})   
-  
+    await db.collection("test").insertOne({"name": name, "lastStatus": Date.now()})
+    return res.sendStatus(201)
+    }
+    catch(err){
+        res.status(500).send("Deu ruim")
+    }
 })
 
 app.get("/participants", (req, res) => {
