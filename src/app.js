@@ -111,9 +111,10 @@ app.get("/messages", async (req, res) => {
 
     const userIsLogged = await db.collection("participants").findOne({ name: user })
     if(!userIsLogged){ return res.sendStatus(404)}
-
+    const limitNumber = parseInt(limit)
+    console.log(limitNumber)
     try {
-        if(limit<1 || !user || typeof limit != 'number' ){
+        if(limitNumber<1 || !user || !limitNumber ){
         return res.sendStatus(422)
         }
 
