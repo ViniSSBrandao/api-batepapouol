@@ -115,25 +115,26 @@ app.get("/messages", async (req, res) => {
     const userIsLogged = await db.collection("participants").findOne({ name: user })
     if(!userIsLogged){ console.log(userIsLogged); return res.sendStatus(404)}
 
-    try {if(limit<=0 || !user){
+    try {
+        if(limit<=0 || !user || Math.isNan(limit) || !limit){
         console.log("limit")
         return res.sendStatus(422)
-    }
+        }
 
-    const messages = await db
-            .collection("messages")
-            .find({ $or: [{ from: user }, { to: { $in: ["Todos", user] } }] })
-            .toArray();
+        const messages = await db
+                .collection("messages")
+                .find({ $or: [{ from: user }, { to: { $in: ["Todos", user] } }] })
+                .toArray();
 
-    const lastMessages = [...messages].reverse().slice(0, parseInt(limit)).reverse();
+        const lastMessages = [...messages].reverse().slice(0, parseInt(limit)).reverse();
 
-    if (limit) {
-        return res.send(lastMessages);
-    }
+        if (limit) {
+            return res.send(lastMessages);
+        }
 
-    await db.collection("messages").find({ $or: [{ from: user }, { to: { $in: ["Todos", user] } }] }).toArray().then(messages => {
-        return res.send(messages)
-    })}catch(err){() => console.log("catch");return res.sendStatus(404)}
+        await db.collection("messages").find({ $or: [{ from: user }, { to: { $in: ["Todos", user] } }] }).toArray().then(messages => {
+            return res.send(messages)
+        })}catch(err){() => console.log("catch");return res.sendStatus(404)}
 });
 
 app.post("/status", async (req, res) => {
