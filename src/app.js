@@ -108,8 +108,8 @@ app.post("/messages", async (req, res) => {
 
 app.get("/messages", async (req, res) => {
 
-    // const { limit } = req.query;
-    // const user = req.headers.user;
+    const { limit } = req.query;
+    const user = req.headers.user;
 
     db.collection("messages").find().toArray().then(messages => {
         return res.send(messages)
@@ -119,7 +119,7 @@ app.get("/messages", async (req, res) => {
 app.post("/status", async (req, res) => {
     
     try{
-    const { name } = req.body 
+    const name  = req.headers.user;
 
     const userIsLogged = await db.collection("participants").findOne({ name })
     console.log(name)
